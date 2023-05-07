@@ -1,6 +1,7 @@
 # ifndef LINKED_LIST
 # define LINKED_LIST
 
+# include <string>
 # include <iostream>
  
 using std::cout, std::endl, std::string, std::ostream;
@@ -31,22 +32,25 @@ class LinkedList {
         bool empty() const;
         Node<T>* head() const;
         Node<T>* tail() const;
-        void add(T data);
+        void pushBack(T data);
+        void pushFront(T data);
         bool remove(T data);
-        bool insert(T data, size_t index);
-        bool insertAfter(T before, T data);
+        bool insertData(T data, size_t index);
+        void insertFunc(T data, bool (*func)(T, T));
+        bool insertAfterData(T before, T data);
         bool contains(T data) const;
         void clear();
         T& operator[](size_t index) const;
         LinkedList reversed() const;
+        LinkedList& reverse();
         Node<T> popHead();
         Node<T> popTail();
-        LinkedList &reverse();
+        LinkedList sorted(bool (*func)(T, T)=[](T a, T b){return a < b;});
+        LinkedList& sort(bool (*func)(T, T)=[](T a, T b){return a < b;});
 };
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const LinkedList<T>& list);
-
 
 
 template <typename T>
@@ -66,7 +70,7 @@ template <class T>
 LinkedList<T>::LinkedList(const LinkedList& other) : _size(other._size), _head(nullptr), _tail(nullptr) {
     Node<T>* nodeToCopy = other._head;
     while(nodeToCopy != nullptr){
-        add(nodeToCopy->data);
+        pushBack(nodeToCopy->data);
         nodeToCopy = nodeToCopy->next;
     }
 }
@@ -75,10 +79,9 @@ template <class T>
 LinkedList<T>& LinkedList<T>::operator=(const LinkedList& other){
     if(this != &other){
         clear();
-        _size = other._size;
         Node<T>* nodeToCopy = other._head;
         while(nodeToCopy != nullptr){
-            add(nodeToCopy->data);
+            pushBack(nodeToCopy->data);
             nodeToCopy = nodeToCopy->next;
         }
     }
@@ -111,18 +114,33 @@ Node<T>* LinkedList<T>::tail() const{
 }
 
 template <class T>
-void LinkedList<T>::add(T data) {
-    Node<T>* nodeToAdd = new Node<T>(data);
+void LinkedList<T>::pushBack(T data) {
+    Node<T>* nodeTopushBack = new Node<T>(data);
     if(_head == nullptr){
-        _head = nodeToAdd;
-        _tail = nodeToAdd;
+        _head = nodeTopushBack;
+        _tail = nodeTopushBack;
     }else{
-        nodeToAdd->prev = _tail;
-        _tail->next = nodeToAdd;
-        _tail = nodeToAdd;
+        nodeTopushBack->prev = _tail;
+        _tail->next = nodeTopushBack;
+        _tail = nodeTopushBack;
     }
     _size++;
 }
+
+template <class T>
+void LinkedList<T>::pushFront(T data) {
+    Node<T>* nodeTopushFront = new Node<T>(data);
+    if(_head == nullptr){
+        _head = nodeTopushFront;
+        _tail = nodeTopushFront;
+    }else{
+        nodeTopushFront->next = _head;
+        _head->prev = nodeTopushFront;
+        _head = nodeTopushFront;
+    }
+    _size++;
+}
+
 
 template <class T>
 bool LinkedList<T>::remove(T data){
@@ -150,24 +168,16 @@ bool LinkedList<T>::remove(T data){
 }
 
 template <class T>
-bool LinkedList<T>::insert(T data, size_t index) {
+bool LinkedList<T>::insertData(T data, size_t index) {
     if(index > _size){
         return false;
     }
     Node<T>* nodeToInsert = new Node<T>(data);
-    if(_head == nullptr){
-        _head = nodeToInsert;
-        _tail = nodeToInsert;
+    if(_head == nullptr || index == _size){
+        pushBack(data);
         return true;
     }else if(index == 0){
-        nodeToInsert->next = _head;
-        _head->prev = nodeToInsert;
-        _head = nodeToInsert;
-        return true;
-    }else if(index == _size){
-        nodeToInsert->prev = _tail;
-        _tail->next = nodeToInsert;
-        _tail = nodeToInsert;
+        pushFront(data);
         return true;
     }else{
         Node<T>* nodeToInsertAfter = _head;
@@ -178,13 +188,45 @@ bool LinkedList<T>::insert(T data, size_t index) {
         nodeToInsert->prev = nodeToInsertAfter;
         nodeToInsertAfter->next->prev = nodeToInsert;
         nodeToInsertAfter->next = nodeToInsert;
+        _size++;
         return true;
     }
     return false;
 }
 
 template <class T>
-bool LinkedList<T>::insertAfter(T before, T data){
+void LinkedList<T>::insertFunc(T data,  bool (*func)(T , T)){
+    Node<T>* nodeToInsert = new Node<T>(data);
+    if(_head == nullptr){
+        pushBack(data);
+        return;
+    }else if(func(data, _head->data)){
+        pushFront(data);
+        return;
+    }else if(func(_tail->data, data)){
+        pushBack(data);
+        return;
+    }else{
+        Node<T>* nodeToInsertBefore = _head;
+        while(nodeToInsertBefore != nullptr){
+            if(func(data, nodeToInsertBefore->data)){
+                nodeToInsert->next = nodeToInsertBefore;
+                nodeToInsert->prev = nodeToInsertBefore->prev;
+                nodeToInsertBefore->prev->next = nodeToInsert;
+                nodeToInsertBefore->prev = nodeToInsert;
+                
+                _size++;
+                return;
+            }
+            nodeToInsertBefore = nodeToInsertBefore->next;
+        }
+        pushBack(data);
+    }
+
+}
+
+template <class T>
+bool LinkedList<T>::insertAfterData(T before, T data){
     Node<T>* nodeToInsertAfter = _head;
     if(_head == nullptr){
         return false;
@@ -196,12 +238,10 @@ bool LinkedList<T>::insertAfter(T before, T data){
         if(_tail == _head){
             _tail = nodeToInsert;
         }
+        _size++;
         return true;
     }else if(_tail->data == before){
-        Node<T>* nodeToInsert = new Node<T>(data);
-        nodeToInsert->prev = _tail;
-        _tail->next = nodeToInsert;
-        _tail = nodeToInsert;
+        pushBack(data);
         return true;
     }
     while(nodeToInsertAfter != nullptr){
@@ -213,6 +253,7 @@ bool LinkedList<T>::insertAfter(T before, T data){
                 nodeToInsertAfter->next->prev = nodeToInsert;
             }
             nodeToInsertAfter->next = nodeToInsert;
+            _size++;
             return true;
         }
         nodeToInsertAfter = nodeToInsertAfter->next;
@@ -274,17 +315,12 @@ T& LinkedList<T>::operator[](size_t index) const{
 
 template <class T>
 LinkedList<T> LinkedList<T>::reversed() const{
-    LinkedList<T> reversedList(*this);
-    Node<T>* nodeToReverse = reversedList.head();
-    while(nodeToReverse != nullptr){
-        Node<T>* nextNode = nodeToReverse->next;
-        nodeToReverse->next = nodeToReverse->prev;
-        nodeToReverse->prev = nextNode;
-        nodeToReverse = nextNode;
+    LinkedList<T> reversedList;
+    Node<T>* nodeToPushFront = _head;
+    while(nodeToPushFront != nullptr){
+        reversedList.pushFront(nodeToPushFront->data);
+        nodeToPushFront = nodeToPushFront->next;
     }
-    Node<T>* temp = reversedList._head;
-    reversedList._head = reversedList._tail;
-    reversedList._tail = temp;
 
     return reversedList;
 }
@@ -310,6 +346,23 @@ Node<T> LinkedList<T>::popTail(){
 template <class T>
 LinkedList<T>& LinkedList<T>::reverse(){
     (*this) = this->reversed();
+    return *this;
+}
+
+template <class T>
+LinkedList<T> LinkedList<T>::sorted(bool (*func)(T, T)){
+    LinkedList<T> sortedList;
+    Node<T>* nodeToSort = _head;
+    while(nodeToSort != nullptr){
+        sortedList.insertFunc(nodeToSort->data, func);
+        nodeToSort = nodeToSort->next;
+    }
+    return sortedList;
+}
+
+template <class T>
+LinkedList<T>& LinkedList<T>::sort(bool (*func)(T, T)){
+    (*this) = this->sorted(func);
     return *this;
 }
 
