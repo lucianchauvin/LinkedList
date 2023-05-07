@@ -45,7 +45,7 @@ class LinkedList {
         LinkedList& reverse();
         Node<T> popHead();
         Node<T> popTail();
-        LinkedList sorted(bool (*func)(T, T)=[](T a, T b){return a < b;}) const;
+        LinkedList sorted(bool (*func)(T, T)=[](T a, T b){return a < b;});
         LinkedList& sort(bool (*func)(T, T)=[](T a, T b){return a < b;});
 };
 
@@ -350,7 +350,7 @@ LinkedList<T>& LinkedList<T>::reverse(){
 }
 
 template <class T>
-LinkedList<T> LinkedList<T>::sorted(bool (*func)(T, T)) const{
+LinkedList<T> LinkedList<T>::sorted(bool (*func)(T, T)){
     LinkedList<T> sortedList;
     Node<T>* nodeToSort = _head;
     while(nodeToSort != nullptr){
