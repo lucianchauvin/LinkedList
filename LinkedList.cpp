@@ -172,7 +172,6 @@ bool LinkedList<T>::insertData(T data, size_t index) {
     if(index > _size){
         return false;
     }
-    Node<T>* nodeToInsert = new Node<T>(data);
     if(_head == nullptr || index == _size){
         pushBack(data);
         return true;
@@ -180,6 +179,7 @@ bool LinkedList<T>::insertData(T data, size_t index) {
         pushFront(data);
         return true;
     }else{
+        Node<T>* nodeToInsert = new Node<T>(data);
         Node<T>* nodeToInsertAfter = _head;
         for(size_t i = 0; i < index - 1; i++){
             nodeToInsertAfter = nodeToInsertAfter->next;
@@ -196,7 +196,6 @@ bool LinkedList<T>::insertData(T data, size_t index) {
 
 template <class T>
 void LinkedList<T>::insertFunc(T data,  bool (*func)(T , T)){
-    Node<T>* nodeToInsert = new Node<T>(data);
     if(_head == nullptr){
         pushBack(data);
         return;
@@ -210,6 +209,7 @@ void LinkedList<T>::insertFunc(T data,  bool (*func)(T , T)){
         Node<T>* nodeToInsertBefore = _head;
         while(nodeToInsertBefore != nullptr){
             if(func(data, nodeToInsertBefore->data)){
+                Node<T>* nodeToInsert = new Node<T>(data);
                 nodeToInsert->next = nodeToInsertBefore;
                 nodeToInsert->prev = nodeToInsertBefore->prev;
                 nodeToInsertBefore->prev->next = nodeToInsert;
