@@ -345,7 +345,7 @@ Node<T> LinkedList<T>::popTail(){
 
 template <class T>
 LinkedList<T>& LinkedList<T>::reverse(){
-    (*this) = this->reversed();
+    (*this) = this->reversed(); //the reason this works is because both the reversed and current have same size and same node pointers and NO dynamic memory members
     return *this;
 }
 
@@ -362,7 +362,7 @@ LinkedList<T> LinkedList<T>::sorted(bool (*func)(T, T)){
 
 template <class T>
 LinkedList<T>& LinkedList<T>::sort(bool (*func)(T, T)){
-    (*this) = this->sorted(func);
+    (*this) = this->sorted(func); //it should be noted that the reason this works is because both the sorted and current have same size and same node pointers NO dynamic memory members
     return *this;
 }
 
